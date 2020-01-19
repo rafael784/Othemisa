@@ -3,26 +3,33 @@ namespace App\Controllers;
 use CodeIgniter\Controller;
 use App\Models\ContaModel;
 
-define("PESSOA_MOCK", "Maria José da Silva");
 
 class ContaController extends BaseController
 {
-	private function templateLogin()
-	{
-        echo view('templates/header');
-        echo view('conta/login');
-        echo view('templates/footer');
-	}
-
     public function login()
     {
+        $this->checkRootLogon();
+
         try{
-            $obj['conta'] = $this->validationContaforLogin($this->request->getVar('email'), true);
+            $obj['email'] = $this->validationContaforLogin($this->request->getVar('email'), true);
             
-            if(!($obj['conta']['password'] === $this->request->getVar('password')))
-            {
-                throw new \Exception("senha Inválida");    
-            }
+            if(empty($obj['email']))
+                throw new \Exception("Email não encontrado" );
+            
+            if(!($obj['email']['password'] === $this->request->getVar('password')))
+                throw new \Exception("Usuário inválido!");    
+            
+            $data = [
+                'infomation' => 'Logado!',
+                'status' => 'Login feito com sucesso',
+                'class' => 'success' 
+            ];
+
+            //fill session
+            $_SESSION['status'] = 'Logon';
+            $_SESSION['email'] = $obj['email'];
+            $_SESSION['password'] = $obj['password'];
+
         }
         catch(\Exception $e)
         {   
@@ -31,10 +38,11 @@ class ContaController extends BaseController
                 'status' => 'Não foi possível logar!',
                 'class' => 'error' 
             ];
-
-            echo view('informations/errorLogin', $data);
-            $this->templateLogin();
         }
+            header_remove();
+            header("Content-Type: application/json");
+            header('Status: ' . $httpStatus);
+            exit(json_encode($data));
     }
 	public function signup(){
         
@@ -61,14 +69,12 @@ class ContaController extends BaseController
                 'cep' =>  $cep, 'password' => $password                   
             ]);
             
-            $this->sendEmailValidation($nome, $email, $password);
+           // $this->sendEmailValidation($nome, $email, $password);
             $data = [
                 'infomation' => 'Enviamos uma mesagem para o email : '.$email.' contendo suas credênciais de acesso (UserName + Password)' ,
                 'status' => 'Conta criada com sucesso!',
-                'class' => 'sucess' 
+                'class' => 'success' 
             ];
-            echo view('informations/sucessLogin', $data);
-            $this->templateLogin();
         }
         catch(\Exception $e)    
         {
@@ -77,27 +83,25 @@ class ContaController extends BaseController
                 'status' => 'A conta não foi criada, tente novamente mais tarde!',
                 'class' => 'error' 
             ];
-            echo view('informations/errorLogin', $data);
-           $this->templateLogin();
-            
         }
+        header_remove();
+        header("Content-Type: application/json");
+        header('Status: ' . $httpStatus);
+        exit(json_encode($data));
     }
     
     public function forgot(){        
-        
         try{
-            
             $obj['conta'] = $this->validationContaforLogin($this->request->getVar('email'),true);
-            $this->sendEmailValidation($obj['conta']['name'], $obj['conta']['email'], $obj['conta']['password']);
+            //$this->sendEmailValidation($obj['conta']['name'], $obj['conta']['email'], $obj['conta']['password']);
             
             $data = [
                 'infomation' => 'Enviamos um mesagem para '.$obj['conta']['email'].' contendo sua senha',
                 'status' => 'Email enviado com sucesso!',
-                'class' => 'sucess' 
+                'class' => 'success' 
             ];
             
-            echo view('informations/sucessLogin', $data);
-            $this->templateLogin();
+            
         }
         catch(\Exception $e)
         {   
@@ -106,11 +110,12 @@ class ContaController extends BaseController
                 'status' => 'Sua senha Não foi enviada! Tente novamente mais tarde',
                 'class' => 'error' 
             ];
-
-            echo view('informations/errorLogin', $data);
-            $this->templateLogin();
         }
 
+        header_remove();
+        header("Content-Type: application/json");
+        header('Status: ' . $httpStatus);
+        exit(json_encode($data) );
     }
 
     private function gerenateRandomStrings($input, $strength = 8){
@@ -131,11 +136,11 @@ class ContaController extends BaseController
         $subject = "Othemisa - Credenciais";
 
         $headers = array(
-            'Authorization: Bearer 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',
+            'Authorization: Bearer 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',
             'Content-Type: application/json'
         );
 
-        $data = array(
+        $data = array(  
             "personalizations" => array(
                 array(
                     "to" => array(

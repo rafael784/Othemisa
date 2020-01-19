@@ -15,6 +15,7 @@ namespace App\Controllers;
  */
 
 use CodeIgniter\Controller;
+session_start();
 
 class BaseController extends Controller
 {
@@ -42,5 +43,18 @@ class BaseController extends Controller
 		// E.g.:
 		// $this->session = \Config\Services::session();
 	}
+
+	public function GoToNow ($url){
+        echo '<script language="javascript">window.location.href ="'.$url.'"</script>';
+	}
+	
+	public function checkRootLogon()
+    {
+        if($_SESSION['status'] == 'Logon')
+        {
+            $this->GoToNow('/Pessoa');
+        }
+    }
+
 
 }
